@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# [START program]
 """Vehicle Routing example"""
 
 # [START import]
@@ -22,10 +23,10 @@ from ortools.constraint_solver import routing_enums_pb2
 
 # [START data]
 def create_data_model():
-    """Stores the data for the problem"""
+    """Stores the data for the problem."""
     data = {}
-    data['num_locations'] = 5
     data['num_vehicles'] = 1
+    data['num_locations'] = 5
     data['depot'] = 0
     return data
 # [END data]
@@ -46,18 +47,18 @@ def create_arc_cost_evaluator():
 
 # [START printer]
 def print_solution(routing, manager, assignment):
-    """Prints assignment on console"""
+    """Prints assignment on console."""
     print('Objective: {}'.format(assignment.ObjectiveValue()))
     index = routing.Start(0)
-    plan_output = 'Route:\n'
-    distance = 0
+    plan_output = 'Route for vehicle 0:\n'
+    route_distance = 0
     while not routing.IsEnd(index):
         plan_output += ' {} ->'.format(manager.IndexToNode(index))
         previous_index = index
         index = assignment.Value(routing.NextVar(index))
-        distance += routing.GetArcCostForVehicle(previous_index, index, 0)
+        route_distance += routing.GetArcCostForVehicle(previous_index, index, 0)
     plan_output += ' {}\n'.format(manager.IndexToNode(index))
-    plan_output += 'Distance of the route: {}m\n'.format(distance)
+    plan_output += 'Distance of the route: {}m\n'.format(route_distance)
     print(plan_output)
 # [END printer]
 
@@ -106,3 +107,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+# [END program]
