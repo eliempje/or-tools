@@ -21,74 +21,33 @@ from ortools.constraint_solver import pywrapcp
 from ortools.constraint_solver import routing_enums_pb2
 # [END import]
 
-# [START data]
-def create_data_model():
-    """Stores the data for the problem."""
-    data = {}
-    data['num_vehicles'] = 1
-    data['num_locations'] = 5
-    data['depot'] = 0
-    return data
-# [END data]
-
-
-# [START arc_cost_evaluator]
-def create_arc_cost_evaluator():
-    """Creates callback to return arc cost."""
-    def arc_cost_evaluator(from_node, to_node):
-        """Returns the arc cost between the two nodes."""
-        del from_node  # unused
-        del to_node  # unused
-        return 1
-
-    return arc_cost_evaluator
-# [END arc_cost_evaluator]
-
-
-# [START printer]
-def print_solution(routing, manager, assignment):
-    """Prints assignment on console."""
-    print('Objective: {}'.format(assignment.ObjectiveValue()))
-    index = routing.Start(0)
-    plan_output = 'Route for vehicle 0:\n'
-    route_distance = 0
-    while not routing.IsEnd(index):
-        plan_output += ' {} ->'.format(manager.IndexToNode(index))
-        previous_index = index
-        index = assignment.Value(routing.NextVar(index))
-        route_distance += routing.GetArcCostForVehicle(previous_index, index, 0)
-    plan_output += ' {}\n'.format(manager.IndexToNode(index))
-    plan_output += 'Distance of the route: {}m\n'.format(route_distance)
-    print(plan_output)
-# [END printer]
-
 def main():
     """Entry point of the program"""
-
     # Instantiate the data problem.
-    # [START data_model]
-    data = create_data_model()
-    # [END data_model]
+    # [START data]
+    num_locations = 5
+    num_vehicles = 1
+    depot = 0
+    # [END data]
 
-    # Create the routing index manager
+    # Create the routing index manager.
     # [START index_manager]
-    manager = pywrapcp.RoutingIndexManager(
-            data['num_locations'], data['num_vehicles'], data['depot'])
+    manager = pywrapcp.RoutingIndexManager(num_locations, num_vehicles, depot)
     # [END index_manager]
 
-    # Create Routing Model
+    # Create Routing Model.
     # [START routing_model]
     routing = pywrapcp.RoutingModel(manager)
     # [END routing_model]
 
-    # Define arc cost
+    # Define cost of each arc.
     # [START arc_cost]
-    arc_cost_evaluator_index = routing.RegisterTransitCallback(
-            create_arc_cost_evaluator())
-    routing.SetArcCostEvaluatorOfAllVehicles(arc_cost_evaluator_index)
+    routing.SetArcCostEvaluatorOfAllVehicles(
+        routing.RegisterTransitCallback(
+            lambda from_node, to_node: 1))
     # [END arc_cost]
 
-    # Setting first solution heuristic (cheapest addition).
+    # Setting first solution heuristic.
     # [START parameters]
     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
     search_parameters.first_solution_strategy = (
@@ -100,8 +59,20 @@ def main():
     assignment = routing.SolveWithParameters(search_parameters)
     # [END solve]
 
+    # Print solution on console.
     # [START print_solution]
-    print_solution(routing, manager, assignment)
+    print('Objective: {}'.format(assignment.ObjectiveValue()))
+    index = routing.Start(0)
+    plan_output = 'Route for vehicle 0:\n'
+    route_distance = 0
+    while not routing.IsEnd(index):
+        plan_output += '{} -> '.format(manager.IndexToNode(index))
+        previous_index = index
+        index = assignment.Value(routing.NextVar(index))
+        route_distance += routing.GetArcCostForVehicle(previous_index, index, 0)
+    plan_output += '{}\n'.format(manager.IndexToNode(index))
+    plan_output += 'Distance of the route: {}m\n'.format(route_distance)
+    print(plan_output)
     # [END print_solution]
 
 
