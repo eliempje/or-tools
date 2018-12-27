@@ -79,6 +79,37 @@ class RoutingSearchParameters;
   }
 }
 
+
+%include "stdint.i"
+typedef int64_t int64;
+namespace operations_research {
+ typedef int64 (*Callback)(int64, int64);
+}  // namespace operations_research
+
+%{
+namespace operations_research {
+ typedef int64 (*Callback)(int64, int64);
+}  // namespace operations_research
+%}
+
+%define %cs_callback(TYPE, CSTYPE)
+  %typemap(ctype) TYPE, TYPE& "void*"
+  %typemap(in) TYPE  %{ $1 = (TYPE)$input; %}
+  %typemap(in) TYPE& %{ $1 = (TYPE*)&$input; %}
+  %typemap(imtype, out="IntPtr") TYPE, TYPE& "CSTYPE"
+  %typemap(cstype, out="IntPtr") TYPE, TYPE& "CSTYPE"
+  %typemap(csin) TYPE, TYPE& "$csinput"
+%enddef
+%cs_callback(operations_research::Callback, CppCallback)
+
+%extend operations_research::RoutingModel {
+ int RegisterCallback(Callback c) {
+   return $self->RegisterTransitCallback([c](int64 i, int64 j) {
+       return (*c)(i, j);
+       });
+ }
+}
+
 %rename("%(camelcase)s", %$isfunction) "";
 
 // Protobuf support

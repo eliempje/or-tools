@@ -15,6 +15,9 @@ namespace Google.OrTools.ConstraintSolver {
 using System;
 using System.Collections.Generic;
 
+public delegate long CppCallback(long FromIndex, long ToIndex);
+
+
 public partial class Solver : IDisposable {
   public IntVar[] MakeIntVarArray(int count, long min, long max) {
     IntVar[] array = new IntVar[count];
